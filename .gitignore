@@ -4,6 +4,8 @@ tg_bot/*
 
 __pypackages__/
 app/util/__pycache__/*
+app/db/temp_db.sql
+app/db/__pycache__/*
 
 # Environments
 .env
