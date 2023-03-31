@@ -17,6 +17,12 @@ class Place(StatesGroup):
     date = State()
     price = State()
 
+class Get(StatesGroup):
+    category = State()
+
+class Del(StatesGroup):
+    name = State()
+
 db = Database(USER_DB, HOST_DB, PASSWORD_DB)
 db.create_db()
 
@@ -25,6 +31,8 @@ async def start(message: types.Message, state:FSMContext):
     logger.info(f'Start user {message.from_user.id}')
     await state.finish()
     await message.answer('Привет, я бот, который помогает сохранять интересные места 😘')
+
+# ----------------------------------- Добавление ---------------------------------------------
 
 @dp.message_handler(commands=['add'])
 async def add_process(message: types.Message):
@@ -110,7 +118,7 @@ async def date_process(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Place.price)
 async def price_process(message: types.Message, state: FSMContext):
 
-    pattern = re.compile(r'^[\d]+[\.]?[\d]*$')
+    pattern = re.compile(r'^[\d]+[\.]?[\d]{0,2}$')
 
     if pattern.match(message.text):
         logger.info(f'Add price {message.text} | user {message.from_user.id}')
@@ -125,3 +133,52 @@ async def price_process(message: types.Message, state: FSMContext):
     await state.finish()
     return await message.answer('Всё, супер 😘')
 
+# ----------------------------------- Поиск ---------------------------------------------
+
+@dp.message_handler(commands=['get'])
+async def get_place(message: types.Message):
+    logger.info(f'Get places')
+    await Get.category.set()
+    await message.answer('Введи категорию места, в которое хочешь пойти 😘')
+
+@dp.message_handler(state=Get.category)
+async def get_process(message: types.Message, state: FSMContext):
+    logger.info(f'Get category {message.text} | user {message.from_user.id}')
+    
+    out = db.extract_place(message.text)
+    
+    if len(out) == 0:
+        return await message.answer('У вас ещё нет мест в этой категории 😘')
+
+    result = ''
+    if message.text == 'Мероприятие':
+        for place in out:
+            result += f'Место: {place[0]}\nАдрес: {place[1]}\nДата: {place[2]}\nЦена: {place[3]}\n\n'
+    else:
+        for place in out:
+            result += f'Место: {place[0]}\nАдрес: {place[1]}\nЦена: {place[2]}\n\n'
+                    
+    logger.info(f'Show places | category {message.text} | user {message.from_user.id}')
+    await state.finish()
+    return await message.answer(f'Вот интересные места по данному запросу 😘\n\n{result}')
+
+# ----------------------------------- Удаление ---------------------------------------------
+
+@dp.message_handler(commands=['del'])
+async def del_place(message: types.Message):
+    logger.info(f'Delete place')
+    await Del.name.set()
+    await message.answer('Введи название места, которое хочешь удалить 😘')
+
+@dp.message_handler(state=Del.name)
+async def del_process(message: types.Message, state: FSMContext):
+    
+    dl = db.del_place(message.text)
+    logger.info(dl)
+
+    logger.info(f'Delete place {message.text} | user {message.from_user.id}')
+    await state.finish()
+
+    if len(dl) == 0:
+        return await message.answer(f'Места {message.text} нет')
+    return await message.answer(f'{message.text} удалено 😘')

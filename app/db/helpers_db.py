@@ -61,10 +61,68 @@ class Database:
                 with connection.cursor() as cursor:
                     logger.info(push_data)
                     cursor.execute(f"""INSERT INTO places (
-                                name_place, address_place, id_category, date_time, price)
+                                name_place, address_place, category, date_time, price)
                                 VALUES (%s, %s, %s, %s, %s)
                                 """, push_data)
                     logger.info(f'Insert row {cursor.fetchall()}')
                 connection.commit()
         except Error as e:
             logger.error(f'Error connect database: {e}')
+
+    def extract_place(self, ctg):
+        try:
+            with connect(
+                user = self.user,
+                host = self.host,
+                password = self.password,
+                database = DB_NAME
+            ) as connection:
+                with connection.cursor() as cursor:
+                    if ctg == 'Мероприятие':
+                        cursor.execute(f"""SELECT 
+                        name_place, address_place, date_time, price
+                        FROM places
+                        WHERE category = '{ctg}'
+                        ORDER BY price
+                        """)
+                    else:
+                        cursor.execute(f"""SELECT 
+                        name_place, address_place, price
+                        FROM places
+                        WHERE category = '{ctg}'
+                        ORDER BY price
+                        """)
+                    logger.info(f'Extract values {ctg}')
+                    res = cursor.fetchall()
+                    
+                    return res
+
+        except Error as e:
+            logger.error(f'Error connect database: {e}')
+
+    def del_place(self, name):
+        try:
+            with connect(
+                user = self.user,
+                host = self.host,
+                password = self.password,
+                database = DB_NAME
+            ) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(f""" SELECT * FROM places
+                    WHERE name_place = '{name}'
+                    """)
+                    res = cursor.fetchall()    
+
+                with connection.cursor() as cursor:
+                    cursor.execute(f""" DELETE FROM places
+                    WHERE name_place = '{name}'
+                    """)
+                    logger.info(f'Delete value {name}')
+                connection.commit()
+
+                return res
+
+        except Error as e:
+            logger.error(f'Error connect database: {e}')
+
