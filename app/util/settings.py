@@ -11,6 +11,7 @@ API_TOKEN = os.getenv('API_TOKEN', default='')
 USER_DB = os.getenv('USER_DB', default='')
 PASSWORD_DB = os.getenv('PASSWORD_DB', default='')
 HOST_DB = os.getenv('HOST_DB', default='')
+TELEGRAM_ID = os.getenv('TELEGRAM_ID', default='')
 
 categories = ['Покушац', 'Парк', 'Мероприятие', 'Музей', 'Магазин', 'С друзьями']
 

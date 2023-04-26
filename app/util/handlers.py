@@ -9,6 +9,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from .settings import *
 from db.helpers_db import Database
+from .helpers import AccessMiddleware
 
 class Place(StatesGroup):
     name = State()
@@ -24,6 +25,7 @@ class Del(StatesGroup):
     name = State()
 
 db = Database(USER_DB, HOST_DB, PASSWORD_DB)
+dp.middleware.setup(AccessMiddleware(TELEGRAM_ID))
 db.create_db()
 
 @dp.message_handler(commands=['start'], state='*')

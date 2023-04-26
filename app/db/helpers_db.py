@@ -70,6 +70,9 @@ class Database:
             logger.error(f'Error connect database: {e}')
 
     def extract_place(self, ctg):
+        """
+        Извлечение записей из таблицы
+        """
         try:
             with connect(
                 user = self.user,
@@ -101,6 +104,9 @@ class Database:
             logger.error(f'Error connect database: {e}')
 
     def del_place(self, name):
+        """
+        Удаление записи из таблицы
+        """
         try:
             with connect(
                 user = self.user,
