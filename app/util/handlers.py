@@ -6,6 +6,7 @@ from datetime import datetime
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from .settings import *
 from db.helpers_db import Database
@@ -31,12 +32,24 @@ db.create_db()
 @dp.message_handler(commands=['start'], state='*')
 async def start(message: types.Message, state:FSMContext):
     logger.info(f'Start user {message.from_user.id}')
+
+    # Создаем объект клавиатуры
+    keyboard: ReplyKeyboardMarkup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+
+    # Создаем объекты кнопок
+    button_add: KeyboardButton = KeyboardButton(text='Добавить')
+    button_search: KeyboardButton = KeyboardButton(text='Найти')
+    button_delete: KeyboardButton = KeyboardButton(text='Удалить')
+
+    # Добавляем кнопки на клавиатуру
+    keyboard.add(button_add, button_search, button_delete)
+
     await state.finish()
-    await message.answer('Привет, я бот, который помогает сохранять интересные места 😘')
+    await message.answer(text='Привет, я бот, который помогает сохранять интересные места 😘', reply_markup=keyboard)
 
 # ----------------------------------- Добавление ---------------------------------------------
 
-@dp.message_handler(commands=['add'])
+@dp.message_handler(lambda message: message.text == 'Добавить')
 async def add_process(message: types.Message):
     logger.info(f'Add process start user {message.from_user.id}')
     await Place.name.set()
@@ -137,7 +150,7 @@ async def price_process(message: types.Message, state: FSMContext):
 
 # ----------------------------------- Поиск ---------------------------------------------
 
-@dp.message_handler(commands=['get'])
+@dp.message_handler(lambda message: message.text == 'Найти')
 async def get_place(message: types.Message):
     logger.info(f'Get places')
     await Get.category.set()
@@ -166,7 +179,7 @@ async def get_process(message: types.Message, state: FSMContext):
 
 # ----------------------------------- Удаление ---------------------------------------------
 
-@dp.message_handler(commands=['del'])
+@dp.message_handler(lambda message: message.text == 'Удалить')
 async def del_place(message: types.Message):
     logger.info(f'Delete place')
     await Del.name.set()
